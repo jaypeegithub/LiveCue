@@ -19,9 +19,7 @@ function normalizeFightStatus(competition: ESPNCompetition): FightStatus {
 }
 
 function competitorDisplayName(c: ESPNCompetition, order: 1 | 2): string {
-  const comp = c.competitors?.find(
-    (x) => x.athlete && Number((x as { order?: number }).order) === order
-  );
+  const comp = c.competitors?.[order - 1];
   return comp?.athlete?.displayName || comp?.athlete?.fullName || "TBD";
 }
 
