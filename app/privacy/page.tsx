@@ -12,7 +12,7 @@ export default function PrivacyPage() {
         ← LiveCue
       </Link>
       <h1>Privacy Policy</h1>
-      <p className="livecue-page-meta">Last updated: February 2025</p>
+      <p className="livecue-page-meta">Last updated: February 2026</p>
 
       <section>
         <h2>What we collect</h2>
@@ -59,7 +59,7 @@ export default function PrivacyPage() {
         <h2>Contact</h2>
         <p>
           For privacy-related questions, contact us at{" "}
-          <a href="mailto:support@livecue.app">support@livecue.app</a>.
+          <a href="mailto:livecuesports@gmail.co,">livecuesports@gmail.com</a>.
         </p>
       </section>
 

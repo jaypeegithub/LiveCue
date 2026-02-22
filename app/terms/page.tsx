@@ -36,6 +36,18 @@ export default function TermsPage() {
       </section>
 
       <section>
+        <h2>Opt-in and phone verification</h2>
+        <p>
+          When you sign up with your phone number to receive a notification,
+          you will receive a text message asking you to opt in and verify your
+          phone number. You must reply with the opt-in keyword{" "}
+          <strong>SUBSCRIBE</strong> to verify your identity and complete
+          opt-in. You will not receive fight alerts until you have replied with{" "}
+          <strong>SUBSCRIBE</strong>.
+        </p>
+      </section>
+
+      <section>
         <h2>Message frequency</h2>
         <p>
           You will receive at most <strong>one (1)</strong> text per
