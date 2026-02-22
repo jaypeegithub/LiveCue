@@ -12,11 +12,11 @@ Your repo has one commit and is ready to push. Follow these steps.
 2. Repository name: **LiveCue** (or any name).
 3. Leave it empty (no README, no .gitignore).
 4. Create the repository.
-5. In your terminal, from the project folder run (replace `YOUR_USERNAME` with your GitHub username):
+5. In your terminal, from the project folder run:
 
 ```bash
 cd /Users/jgoat/Desktop/GITHUB/LiveCue
-git remote add origin https://github.com/YOUR_USERNAME/LiveCue.git
+git remote add origin https://github.com/jaypeegithub/LiveCue.git
 git branch -M main
 git push -u origin main
 ```

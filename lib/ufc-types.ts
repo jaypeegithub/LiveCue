@@ -61,6 +61,7 @@ export interface ESPNCompetition {
 
 export interface ESPNCompetitor {
   id: string;
+  order?: number | string;
   winner?: boolean;
   athlete?: { fullName?: string; displayName?: string };
 }
