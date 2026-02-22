@@ -1,14 +1,15 @@
-import type { Metadata } from "next";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "LiveCue",
-  description: "Get a text when your UFC fight is about to start.",
+export const metadata = {
+  title: "LiveCue MVP",
+  description: "ESPN MMA exists check",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body>{children}</body>
