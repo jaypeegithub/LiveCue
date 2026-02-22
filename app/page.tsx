@@ -8,6 +8,9 @@ export default function Home() {
         <Link href="/api/espn">/api/espn</Link> — returns true if ESPN MMA
         website exists.
       </p>
+      <p>
+        <Link href="/event">Strickland vs Hernandez</Link> — main card fights for UFC Fight Night.
+      </p>
     </div>
   );
 }
