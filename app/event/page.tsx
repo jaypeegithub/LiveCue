@@ -25,7 +25,11 @@ export default function EventPage() {
 
   useEffect(() => {
     fetch("/api/espn/event?eventId=600057329")
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(res.statusText))))
+      .then(async (res) => {
+        const body = await res.json().catch(() => ({}));
+        if (res.ok) return body;
+        throw new Error(body.error || res.statusText);
+      })
       .then(setData)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));

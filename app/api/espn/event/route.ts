@@ -1,96 +1,69 @@
-const ESPN_SCOREBOARD =
-  "https://site.api.espn.com/apis/site/v2/sports/mma/ufc/scoreboard";
+import { fetchEventMainCard } from "@/lib/espn-event";
+import { supabase } from "@/lib/supabase-server";
 
-type Competition = {
-  id: string;
-  date?: string;
-  startDate?: string;
-  type?: { abbreviation?: string };
-  status?: {
-    type?: { state?: string; completed?: boolean };
-  };
-  competitors?: Array<{
-    order?: number;
-    winner?: boolean;
-    athlete?: { fullName?: string; displayName?: string };
-    records?: Array<{ summary?: string }>;
-  }>;
-};
-
-type Event = {
-  id: string;
-  name: string;
-  date?: string;
-  competitions?: Competition[];
-};
-
-type ScoreboardResponse = {
-  events?: Event[];
-};
-
-const MAIN_CARD_FIGHT_COUNT = 9;
-
-function getFighterName(comp: Competition, order: 1 | 2): string {
-  const c = comp.competitors?.[order - 1];
-  return c?.athlete?.displayName || c?.athlete?.fullName || "TBD";
-}
-
-function getFighterRecord(comp: Competition, order: 1 | 2): string {
-  const c = comp.competitors?.[order - 1];
-  const rec = c?.records?.find((r) => r.summary);
-  return rec?.summary ?? "";
-}
-
-function getFightStatus(comp: Competition): "Finished" | "In progress" | "Not started" {
-  const state = comp.status?.type?.state;
-  const completed = comp.status?.type?.completed;
-  if (completed === true || state === "post") return "Finished";
-  if (state === "in") return "In progress";
-  return "Not started";
-}
+const DEFAULT_EVENT_ID = "600057329";
+const EVENT_DATE = "20260221";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const eventId = searchParams.get("eventId") ?? "600057329";
+  const eventId = searchParams.get("eventId") ?? DEFAULT_EVENT_ID;
 
   try {
-    const eventDate = "20260221";
-    const res = await fetch(`${ESPN_SCOREBOARD}?dates=${eventDate}`, {
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) throw new Error(`ESPN API error: ${res.status}`);
-    const data: ScoreboardResponse = await res.json();
+    if (supabase) {
+      try {
+        const { data: eventRow, error: eventError } = await supabase
+          .from("events")
+          .select("id, espn_event_id, name")
+          .eq("espn_event_id", eventId)
+          .maybeSingle();
 
-    const event = data.events?.find((e) => e.id === eventId);
-    if (!event) {
+        if (!eventError && eventRow) {
+          const { data: fights, error: fightsError } = await supabase
+            .from("fights")
+            .select("weight_class, fighter1_name, fighter2_name, fighter1_record, fighter2_record, status")
+            .eq("event_id", eventRow.id)
+            .order("order_index", { ascending: true });
+
+          if (!fightsError && fights?.length) {
+            return Response.json({
+              eventName: eventRow.name,
+              eventId: eventRow.espn_event_id,
+              mainCard: fights.map((f: { weight_class: string | null; fighter1_name: string; fighter2_name: string; fighter1_record: string | null; fighter2_record: string | null; status: string }) => ({
+                weightClass: f.weight_class ?? "",
+                fighter1: f.fighter1_name,
+                fighter2: f.fighter2_name,
+                record1: f.fighter1_record ?? "",
+                record2: f.fighter2_record ?? "",
+                status: f.status,
+              })),
+            });
+          }
+        }
+      } catch (dbError) {
+        console.error("[event] Supabase fallback:", dbError);
+      }
+    }
+
+    const data = await fetchEventMainCard(eventId, EVENT_DATE);
+    if (!data) {
       return Response.json(
         { error: "Event not found", eventId },
         { status: 404 }
       );
     }
 
-    const competitions = event.competitions ?? [];
-    const sorted = [...competitions].sort((a, b) => {
-      const aStart = a.startDate || a.date || "";
-      const bStart = b.startDate || b.date || "";
-      return aStart.localeCompare(bStart);
-    });
-    const mainCard = sorted.slice(-MAIN_CARD_FIGHT_COUNT).reverse();
-
-    const fights = mainCard.map((comp) => ({
-      weightClass: comp.type?.abbreviation ?? "",
-      fighter1: getFighterName(comp, 1),
-      fighter2: getFighterName(comp, 2),
-      record1: getFighterRecord(comp, 1),
-      record2: getFighterRecord(comp, 2),
-      status: getFightStatus(comp),
-    }));
-
     return Response.json({
-      eventName: event.name,
-      eventId: event.id,
-      mainCard: fights,
-    });
+    eventName: data.eventName,
+    eventId: data.espn_event_id,
+    mainCard: data.mainCard.map((f) => ({
+      weightClass: f.weightClass,
+      fighter1: f.fighter1,
+      fighter2: f.fighter2,
+      record1: f.record1,
+      record2: f.record2,
+      status: f.status,
+    })),
+  });
   } catch (e) {
     console.error(e);
     return Response.json(
