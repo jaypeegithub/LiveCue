@@ -1,8 +1,8 @@
 # LiveCue MVP
 
-- **GET /api/espn** — Returns `{ "exists": true }` if ESPN MMA is up.
-- **GET /api/espn/event?eventId=600057329** — Main card fights (from Supabase if synced, else ESPN).
-- **POST /api/espn/sync** — Sync Strickland vs Hernandez main card from ESPN into Supabase.
+- **GET /api/espn/events** — Next 3 UFC events (from Supabase if synced, else ESPN).
+- **GET /api/espn/event?eventId=...** — Main card fights for an event (from Supabase if synced, else ESPN).
+- **POST /api/espn/sync** — Sync next 3 events and their main cards from ESPN into Supabase.
 
 ## Run locally
 
@@ -17,8 +17,7 @@ npm run dev
 1. Create a project at [supabase.com](https://supabase.com).
 2. In **SQL Editor**, run `supabase/migrations/002_events_fights.sql`.
 3. In **Settings → API**, copy **Project URL** and **service_role** key into `.env.local`.
-4. Sync the main card once: `curl -X POST http://localhost:3000/api/espn/sync`
-5. Open [/event](http://localhost:3000/event) — data is read from the database.
+4. Sync once: `curl -X POST http://localhost:3000/api/espn/sync` — then the home page dropdowns use the database.
 
 **Tables:** `events` (espn_event_id, name, event_date), `fights` (event_id, weight_class, fighter1/2 names and records, status, order_index).
 

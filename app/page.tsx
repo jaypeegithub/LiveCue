@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect } from "react";
 
 type EventItem = { id: string; name: string; event_date: string | null };
@@ -53,19 +52,23 @@ export default function Home() {
 
   return (
     <div>
-      <h1>LiveCue</h1>
-      <p className="text-zinc-400 text-sm mb-4">
-        Pick an event and a fight to get started.
-      </p>
+      <header className="livecue-header">
+        <h1 className="livecue-logo">LiveCue</h1>
+        <p className="livecue-slogan">Never miss the fight</p>
+        <p className="livecue-desc">
+          Get your cue when your bout is about to start. Choose an event and a
+          fight below—we’ll make sure you’re there when it matters.
+        </p>
+      </header>
 
-      <div className="space-y-4 max-w-md">
-        <div>
-          <label className="block text-sm text-zinc-500 mb-1">Event</label>
+      <main className="livecue-main">
+        <div className="livecue-card">
+          <label className="livecue-label">Event</label>
           <select
             value={selectedEventId}
             onChange={(e) => setSelectedEventId(e.target.value)}
             disabled={loadingEvents}
-            className="w-full px-3 py-2 rounded bg-zinc-800 border border-zinc-600 text-white text-sm"
+            className="livecue-select"
           >
             <option value="">Select event</option>
             {events.map((ev) => (
@@ -77,33 +80,23 @@ export default function Home() {
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm text-zinc-500 mb-1">Fight</label>
+        <div className="livecue-card">
+          <label className="livecue-label">Fight</label>
           <select
             value={selectedFightIndex}
             onChange={(e) => setSelectedFightIndex(Number(e.target.value))}
             disabled={loadingFights || fights.length === 0}
-            className="w-full px-3 py-2 rounded bg-zinc-800 border border-zinc-600 text-white text-sm"
+            className="livecue-select"
           >
             <option value={-1}>Select fight</option>
             {fights.map((f, i) => (
               <option key={i} value={i}>
-                {f.weightClass}: {f.fighter1} vs {f.fighter2} ({f.status})
+                {f.fighter1} vs {f.fighter2}
               </option>
             ))}
           </select>
         </div>
-      </div>
-
-      <footer className="mt-8 pt-4 border-t border-zinc-700 text-zinc-500 text-xs">
-        <Link href="/api/espn" className="hover:text-white">
-          /api/espn
-        </Link>
-        {" · "}
-        <Link href="/event" className="hover:text-white">
-          Event page
-        </Link>
-      </footer>
+      </main>
     </div>
   );
 }
