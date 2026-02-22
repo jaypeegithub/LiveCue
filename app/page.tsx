@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 
 type EventItem = { id: string; name: string; event_date: string | null };
@@ -97,6 +98,12 @@ export default function Home() {
           </select>
         </div>
       </main>
+
+      <footer className="livecue-footer">
+        <Link href="/privacy">Privacy Policy</Link>
+        <span>·</span>
+        <Link href="/terms">Terms and Conditions</Link>
+      </footer>
     </div>
   );
 }

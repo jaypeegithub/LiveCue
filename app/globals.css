@@ -101,3 +101,93 @@ body {
   background: #18181b;
   color: #fff;
 }
+
+.livecue-footer {
+  text-align: center;
+  padding: 2rem 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.8rem;
+  color: #71717a;
+}
+
+.livecue-footer a {
+  color: #a855f7;
+  text-decoration: none;
+}
+
+.livecue-footer a:hover {
+  text-decoration: underline;
+}
+
+.livecue-footer span {
+  margin: 0 0.5rem;
+  color: #52525b;
+}
+
+/* Policy pages */
+.livecue-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.livecue-page h1 {
+  font-family: var(--font-oswald), sans-serif;
+  font-weight: 700;
+  font-size: 1.75rem;
+  letter-spacing: 0.1em;
+  color: #fff;
+  margin: 0 0 0.25rem 0;
+  text-transform: uppercase;
+}
+
+.livecue-page .livecue-page-meta {
+  font-size: 0.8rem;
+  color: #71717a;
+  margin-bottom: 1.5rem;
+}
+
+.livecue-page h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 1.5rem 0 0.5rem 0;
+}
+
+.livecue-page p,
+.livecue-page li {
+  font-size: 0.9rem;
+  color: #a1a1aa;
+  line-height: 1.6;
+  margin: 0 0 0.75rem 0;
+}
+
+.livecue-page ul {
+  margin: 0 0 0.75rem 0;
+  padding-left: 1.25rem;
+}
+
+.livecue-page a {
+  color: #a855f7;
+  text-decoration: none;
+}
+
+.livecue-page a:hover {
+  text-decoration: underline;
+}
+
+.livecue-page strong {
+  color: #e4e4e7;
+}
+
+.livecue-back {
+  display: inline-block;
+  font-size: 0.8rem;
+  color: #71717a;
+  margin-bottom: 1.5rem;
+  text-decoration: none;
+}
+
+.livecue-back:hover {
+  color: #a855f7;
+}
