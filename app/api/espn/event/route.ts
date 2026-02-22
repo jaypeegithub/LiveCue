@@ -6,6 +6,9 @@ type Competition = {
   date?: string;
   startDate?: string;
   type?: { abbreviation?: string };
+  status?: {
+    type?: { state?: string; completed?: boolean };
+  };
   competitors?: Array<{
     order?: number;
     winner?: boolean;
@@ -38,6 +41,14 @@ function getFighterRecord(comp: Competition, order: 1 | 2): string {
   return rec?.summary ?? "";
 }
 
+function getFightStatus(comp: Competition): "Finished" | "In progress" | "Not started" {
+  const state = comp.status?.type?.state;
+  const completed = comp.status?.type?.completed;
+  if (completed === true || state === "post") return "Finished";
+  if (state === "in") return "In progress";
+  return "Not started";
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const eventId = searchParams.get("eventId") ?? "600057329";
@@ -64,7 +75,7 @@ export async function GET(request: Request) {
       const bStart = b.startDate || b.date || "";
       return aStart.localeCompare(bStart);
     });
-    const mainCard = sorted.slice(-MAIN_CARD_FIGHT_COUNT);
+    const mainCard = sorted.slice(-MAIN_CARD_FIGHT_COUNT).reverse();
 
     const fights = mainCard.map((comp) => ({
       weightClass: comp.type?.abbreviation ?? "",
@@ -72,6 +83,7 @@ export async function GET(request: Request) {
       fighter2: getFighterName(comp, 2),
       record1: getFighterRecord(comp, 1),
       record2: getFighterRecord(comp, 2),
+      status: getFightStatus(comp),
     }));
 
     return Response.json({
