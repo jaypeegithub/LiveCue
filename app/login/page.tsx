@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import LoginForm from "@/components/LoginForm";
 
 export const metadata = {
@@ -13,7 +14,9 @@ export default function LoginPage() {
         ← LiveCue
       </Link>
       <h1>Log in</h1>
-      <LoginForm />
+      <Suspense fallback={<p className="livecue-desc">Loading...</p>}>
+        <LoginForm />
+      </Suspense>
       <p style={{ marginTop: "1rem" }}>
         Don&apos;t have an account? <Link href="/signup">Sign up</Link>
       </p>

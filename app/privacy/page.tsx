@@ -45,6 +45,17 @@ export default function PrivacyPage() {
       </section>
 
       <section>
+        <h2>Cookies and local storage</h2>
+        <p>
+          We use <strong>local storage</strong> in your browser to keep you
+          logged in (session data). We do not use cookies for tracking or
+          advertising. If you log out or use a different device or browser, you
+          will need to log in again. You can clear local storage in your
+          browser settings at any time.
+        </p>
+      </section>
+
+      <section>
         <h2>Data storage and security</h2>
         <p>
           Subscription data is stored in a secure database. We use
@@ -65,6 +76,8 @@ export default function PrivacyPage() {
 
       <footer className="livecue-footer" style={{ marginTop: "2rem" }}>
         <Link href="/">LiveCue</Link>
+        <span>·</span>
+        <Link href="/faq">FAQ</Link>
         <span>·</span>
         <Link href="/terms">Terms and Conditions</Link>
       </footer>

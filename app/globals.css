@@ -45,6 +45,44 @@ body {
   line-height: 1.5;
 }
 
+.livecue-cta-small-wrap {
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.livecue-cta-small {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  color: #fff;
+  background: #a855f7;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.livecue-cta-small:hover {
+  background: #9333ea;
+}
+
+.livecue-cta-small-login {
+  display: block;
+  font-size: 0.75rem;
+  color: #71717a;
+  margin-top: 0.5rem;
+}
+
+.livecue-cta-small-login a {
+  color: #a855f7;
+  text-decoration: none;
+}
+
+.livecue-cta-small-login a:hover {
+  text-decoration: underline;
+}
+
 .livecue-main {
   max-width: 440px;
   margin: 0 auto;

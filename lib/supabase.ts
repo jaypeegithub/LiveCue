@@ -76,6 +76,14 @@ export async function signOut() {
   return { error };
 }
 
+/** Get the currently logged-in user, or null. Use for client-side auth checks. */
+export async function getCurrentUser() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user;
+}
+
 export async function getProfile() {
   const {
     data: { user },

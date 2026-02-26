@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { getCurrentUser, signOut } from "@/lib/supabase";
+import DashboardContent from "@/components/DashboardContent";
 
 type EventItem = { id: string; name: string; event_date: string | null };
 type FightItem = {
@@ -13,7 +15,7 @@ type FightItem = {
   status: string;
 };
 
-export default function Home() {
+function LandingContent() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string>("");
   const [fights, setFights] = useState<FightItem[]>([]);
@@ -52,7 +54,7 @@ export default function Home() {
   }, [selectedEventId]);
 
   return (
-    <div>
+    <>
       <header className="livecue-header">
         <h1 className="livecue-logo">LiveCue</h1>
         <p className="livecue-slogan">Never miss the fight</p>
@@ -97,13 +99,87 @@ export default function Home() {
             ))}
           </select>
         </div>
+        <div className="livecue-cta-small-wrap">
+          <Link href="/signup" className="livecue-cta-small">
+            Sign up to get notified when your fight is about to begin!
+          </Link>
+          <span className="livecue-cta-small-login">
+            Already have an account? <Link href="/login">Log in</Link>
+          </span>
+        </div>
       </main>
 
       <footer className="livecue-footer">
+        <Link href="/faq">FAQ</Link>
+        <span>·</span>
         <Link href="/privacy">Privacy Policy</Link>
         <span>·</span>
         <Link href="/terms">Terms and Conditions</Link>
       </footer>
+    </>
+  );
+}
+
+export default function Home() {
+  const [user, setUser] = useState<unknown>(null);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    getCurrentUser().then((u) => {
+      setUser(u);
+      setChecking(false);
+    });
+  }, []);
+
+  async function handleSignOut() {
+    await signOut();
+    window.location.href = "/";
+  }
+
+  if (checking) {
+    return (
+      <div className="livecue-page" style={{ textAlign: "center", padding: "3rem" }}>
+        <p className="livecue-desc">Loading...</p>
+      </div>
+    );
+  }
+
+  if (user) {
+    return (
+      <div>
+        <header className="livecue-header">
+          <h1 className="livecue-logo">LiveCue</h1>
+          <p className="livecue-slogan">Never miss the fight</p>
+          <p className="livecue-desc">
+            You&apos;re in. Pick an event and fight below—we&apos;ll cue you when
+            your bout is about to start.
+          </p>
+        </header>
+
+        <DashboardContent />
+
+        <footer className="livecue-footer">
+          <Link href="/faq">FAQ</Link>
+          <span>·</span>
+          <Link href="/privacy">Privacy</Link>
+          <span>·</span>
+          <Link href="/terms">Terms</Link>
+          <span>·</span>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="livecue-footer-btn"
+          >
+            Log out
+          </button>
+        </footer>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <LandingContent />
     </div>
   );
 }

@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "@/lib/supabase";
 
 type Props = { onSuccess?: (data: unknown) => void };
 
 export default function LoginForm({ onSuccess }: Props = {}) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -30,7 +32,7 @@ export default function LoginForm({ onSuccess }: Props = {}) {
       return setError(signInError.message || "Invalid username or password.");
     }
     onSuccess?.(data);
-    router.push("/dashboard");
+    router.push(redirectTo);
   }
 
   return (

@@ -108,6 +108,8 @@ export default function TermsPage() {
       <footer className="livecue-footer" style={{ marginTop: "2rem" }}>
         <Link href="/">LiveCue</Link>
         <span>·</span>
+        <Link href="/faq">FAQ</Link>
+        <span>·</span>
         <Link href="/privacy">Privacy Policy</Link>
       </footer>
     </div>
