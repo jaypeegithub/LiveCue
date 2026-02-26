@@ -59,7 +59,7 @@ export default function PrivacyPage() {
         <h2>Contact</h2>
         <p>
           For privacy-related questions, contact us at{" "}
-          <a href="mailto:livecuesports@gmail.co,">livecuesports@gmail.com</a>.
+          <a href="mailto:livecuesports@gmail.com">livecuesports@gmail.com</a>.
         </p>
       </section>
 

@@ -19,10 +19,12 @@ export default function TermsPage() {
         <h2>Program name and description</h2>
         <p>
           <strong>LiveCue</strong> is a notification service that sends you a
-          cue (e.g. by SMS) when the fight <em>before</em> your chosen UFC bout
-          has ended, so you know your fight is about to start. You select an
-          event and a fight and may provide your mobile number to receive
-          reminders.
+          cue when the fight <em>before</em> your chosen UFC bout has ended,
+          so you know your fight is about to start. You sign up with your
+          mobile number, select an event and a fight, and choose how you want
+          to be alerted: <strong>SMS</strong> or <strong>phone call</strong>.
+          You will receive one alert per subscription when your fight is about
+          to start.
         </p>
       </section>
 
@@ -38,21 +40,29 @@ export default function TermsPage() {
       <section>
         <h2>Opt-in and phone verification</h2>
         <p>
-          When you sign up with your phone number to receive a notification,
-          you will receive a text message asking you to opt in and verify your
-          phone number. You must reply with the opt-in keyword{" "}
-          <strong>SUBSCRIBE</strong> to verify your identity and complete
-          opt-in. You will not receive fight alerts until you have replied with{" "}
-          <strong>SUBSCRIBE</strong>.
+          After you sign up and select a fight to get notified for, we send you
+          an <strong>SMS</strong> to verify your phone number and complete
+          opt-in. We send this verification text whether you chose SMS or phone
+          call for your actual fight alert—it confirms your number is real and
+          that you consent to receive notifications.
+        </p>
+        <p>
+          You must reply with the keyword <strong>FIGHT</strong> to opt in and
+          verify your phone. You will not receive any fight alerts until you
+          have replied <strong>FIGHT</strong>. Once verified, you will receive
+          your alert by the method you selected (SMS or phone call) when your
+          fight is about to start.
         </p>
       </section>
 
       <section>
         <h2>Message frequency</h2>
         <p>
-          You will receive at most <strong>one (1)</strong> text per
-          subscription—when the fight before your selected fight has ended. We
-          do not send recurring or marketing messages.
+          You will receive at most <strong>one (1)</strong> verification SMS
+          (to opt in by replying FIGHT) and <strong>one (1)</strong> alert per
+          subscription—when the fight before your selected fight has ended. The
+          alert is delivered by SMS or phone call based on your choice. We do
+          not send recurring or marketing messages.
         </p>
       </section>
 
@@ -60,7 +70,7 @@ export default function TermsPage() {
         <h2>Support contact</h2>
         <p>
           For help or questions, contact us at{" "}
-          <a href="mailto:support@livecue.app">support@livecue.app</a>.
+          <a href="mailto:livecuesports@gmail.com">livecuesports@gmail.com</a>.
         </p>
       </section>
 

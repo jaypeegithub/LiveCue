@@ -27,24 +27,31 @@ export async function signUp({
   username,
   password,
   phoneNumber,
+  phoneCountry,
   tosAccepted,
+  recoveryEmail,
 }: {
   username: string;
   password: string;
   phoneNumber: string;
+  phoneCountry: "US" | "CA";
   tosAccepted: boolean;
+  recoveryEmail?: string | null;
 }) {
   const fakeEmail = `${username.toLowerCase()}@livecue.app`;
+  const metadata: Record<string, unknown> = {
+    username,
+    phone_number: phoneNumber,
+    phone_country: phoneCountry,
+    tos_accepted: tosAccepted,
+  };
+  if (recoveryEmail?.trim()) {
+    metadata.recovery_email = recoveryEmail.trim();
+  }
   const { data, error } = await supabase.auth.signUp({
     email: fakeEmail,
     password,
-    options: {
-      data: {
-        username,
-        phone_number: phoneNumber,
-        tos_accepted: tosAccepted,
-      },
-    },
+    options: { data: metadata },
   });
   return { data, error };
 }
