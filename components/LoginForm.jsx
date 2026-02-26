@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { signIn } from '@/lib/supabase'
 
-export default function LoginForm({ onSuccess }) {
+export default function LoginForm({ onSuccess } = {}) {
   const router = useRouter()
   const [form, setForm] = useState({ username: '', password: '' })
   const [error, setError] = useState(null)

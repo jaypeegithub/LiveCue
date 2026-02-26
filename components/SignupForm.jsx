@@ -10,7 +10,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { signUp, isUsernameTaken } from '@/lib/supabase'
 
-export default function SignupForm({ onSuccess }) {
+export default function SignupForm({ onSuccess } = {}) {
   const router = useRouter()
   const [form, setForm] = useState({
     username: '',
