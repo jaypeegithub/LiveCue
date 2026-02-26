@@ -102,6 +102,104 @@ body {
   color: #fff;
 }
 
+/* Auth forms */
+.livecue-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: #fff;
+  background: rgba(39, 39, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.livecue-input::placeholder {
+  color: #71717a;
+}
+
+.livecue-input:hover {
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+.livecue-input:focus {
+  outline: none;
+  border-color: #a855f7;
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+}
+
+.livecue-form-group {
+  margin-bottom: 1rem;
+}
+
+.livecue-form-group label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #71717a;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.livecue-btn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #fff;
+  background: #a855f7;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.livecue-btn:hover:not(:disabled) {
+  background: #9333ea;
+}
+
+.livecue-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.livecue-error {
+  font-size: 0.85rem;
+  color: #f87171;
+  margin-bottom: 1rem;
+}
+
+.livecue-checkbox-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.livecue-checkbox-wrap input[type="checkbox"] {
+  margin-top: 0.25rem;
+  accent-color: #a855f7;
+  cursor: pointer;
+}
+
+.livecue-checkbox-wrap label {
+  font-size: 0.9rem;
+  color: #a1a1aa;
+  cursor: pointer;
+}
+
+.livecue-checkbox-wrap a {
+  color: #a855f7;
+  text-decoration: none;
+}
+
+.livecue-checkbox-wrap a:hover {
+  text-decoration: underline;
+}
+
 .livecue-footer {
   text-align: center;
   padding: 2rem 1.5rem;
