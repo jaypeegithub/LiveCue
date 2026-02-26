@@ -200,6 +200,32 @@ body {
   text-decoration: underline;
 }
 
+/* Alert method (SMS / Phone call) */
+.livecue-alert-options {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.livecue-alert-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #e4e4e7;
+}
+
+.livecue-alert-option input {
+  accent-color: #a855f7;
+  cursor: pointer;
+}
+
+.livecue-alert-success {
+  border-color: rgba(168, 85, 247, 0.3);
+  background: rgba(168, 85, 247, 0.08);
+}
+
 .livecue-footer {
   text-align: center;
   padding: 2rem 1.5rem;
@@ -220,6 +246,22 @@ body {
 .livecue-footer span {
   margin: 0 0.5rem;
   color: #52525b;
+}
+
+.livecue-footer-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 0.5rem;
+  font: inherit;
+  font-size: 0.8rem;
+  color: #a855f7;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.livecue-footer-btn:hover {
+  text-decoration: underline;
 }
 
 /* Policy pages */
