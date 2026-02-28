@@ -15,6 +15,38 @@ type WatchRow = {
   } | null;
 };
 
+function normalizeWatchRow(raw: unknown): WatchRow {
+  const r = raw as Record<string, unknown>;
+  const fightsRaw = r.fights;
+  const fight = Array.isArray(fightsRaw) ? fightsRaw[0] : fightsRaw;
+  const eventsRaw =
+    fight && typeof fight === "object" && "events" in fight
+      ? (fight as Record<string, unknown>).events
+      : null;
+  const event = eventsRaw == null ? null : Array.isArray(eventsRaw) ? eventsRaw[0] : eventsRaw;
+  const eventObj =
+    event && typeof event === "object" && "name" in event && "event_date" in event
+      ? {
+          name: String((event as Record<string, unknown>).name),
+          event_date: (event as Record<string, unknown>).event_date as string | null,
+        }
+      : null;
+  const fightObj =
+    fight && typeof fight === "object" && "fighter1_name" in fight && "fighter2_name" in fight
+      ? {
+          fighter1_name: String((fight as Record<string, unknown>).fighter1_name),
+          fighter2_name: String((fight as Record<string, unknown>).fighter2_name),
+          events: eventObj,
+        }
+      : null;
+  return {
+    id: String(r.id),
+    opted_in: Boolean(r.opted_in),
+    notification_preference: String(r.notification_preference ?? ""),
+    fights: fightObj,
+  };
+}
+
 export default function DashboardSettings() {
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
   const [session, setSession] = useState<{ access_token: string } | null>(null);
@@ -56,27 +88,31 @@ export default function DashboardSettings() {
   useEffect(() => {
     if (!user?.id) return;
     setWatchesLoading(true);
-    supabase
-      .from("user_fight_watches")
-      .select(
-        "id, opted_in, notification_preference, fights(fighter1_name, fighter2_name, events(name, event_date))"
-      )
-      .eq("user_id", user.id)
-      .then(({ data, error }) => {
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("user_fight_watches")
+          .select(
+            "id, opted_in, notification_preference, fights(fighter1_name, fighter2_name, events(name, event_date))"
+          )
+          .eq("user_id", user.id);
         if (error) {
           console.error("[DashboardSettings] watches", error);
           setWatches([]);
           return;
         }
-        const rows = (data ?? []) as WatchRow[];
+        const rawList = Array.isArray(data) ? data : [];
+        const rows: WatchRow[] = rawList.map((row) => normalizeWatchRow(row));
         rows.sort((a, b) => {
           const dateA = a.fights?.events?.event_date ?? "";
           const dateB = b.fights?.events?.event_date ?? "";
           return dateA.localeCompare(dateB);
         });
         setWatches(rows);
-      })
-      .finally(() => setWatchesLoading(false));
+      } finally {
+        setWatchesLoading(false);
+      }
+    })();
   }, [user?.id]);
 
   async function handleChangePassword(e: React.FormEvent) {
