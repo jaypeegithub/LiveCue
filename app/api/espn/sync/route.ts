@@ -67,6 +67,13 @@ export async function POST() {
           { onConflict: "event_id,espn_competition_id" }
         );
 
+        if (data.eventStartTime) {
+          await supabase
+            .from("events")
+            .update({ event_start_time: data.eventStartTime })
+            .eq("id", eventRow.id);
+        }
+
         if (fightsError) {
           console.error("fights upsert", ev.espn_event_id, fightsError);
         } else {
