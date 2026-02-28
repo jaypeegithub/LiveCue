@@ -78,5 +78,24 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const { data: fight } = await supabase
+    .from("fights")
+    .select("fighter1_name, fighter2_name")
+    .eq("id", fightId)
+    .single();
+
+  const fighter1 = fight?.fighter1_name ?? "Fighter 1";
+  const fighter2 = fight?.fighter2_name ?? "Fighter 2";
+  const message = `OPT-IN PENDING: ${fighter1} vs ${fighter2} via ${notificationPreference}.`;
+
+  const { error: logError } = await supabase.from("notification_logs").insert({
+    user_id: user.id,
+    fight_id: fightId,
+    message,
+  });
+  if (logError) {
+    console.error("[watch] notification_logs insert", logError);
+  }
+
   return Response.json({ success: true });
 }
