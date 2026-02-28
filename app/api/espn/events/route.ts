@@ -6,6 +6,15 @@ const FINISHED_EVENTS_LIMIT = 10;
 /** Fetch extra events so we can skip ones where all fights are Finished. */
 const FETCH_EVENTS_LIMIT = 15;
 
+const noCacheHeaders = { "Cache-Control": "no-store, max-age=0" };
+
+/** Always return date as YYYY-MM-DD so client never gets ISO datetime (which can display as next day in some zones). */
+function toDateOnly(d: string | null | undefined): string | null {
+  if (d == null) return null;
+  const s = String(d).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+}
+
 export async function GET() {
   try {
     if (supabase) {
@@ -25,7 +34,7 @@ export async function GET() {
           const fromDb = upcoming.slice(0, NEXT_EVENTS_COUNT).map((r) => ({
             id: r.espn_event_id,
             name: r.name,
-            event_date: r.event_date ?? null,
+            event_date: toDateOnly(r.event_date),
             event_status: r.event_status ?? "upcoming",
           }));
 
@@ -39,12 +48,12 @@ export async function GET() {
           const finishedEvents = (finishedRows ?? []).map((r) => ({
             id: r.espn_event_id,
             name: r.name,
-            event_date: r.event_date ?? null,
+            event_date: toDateOnly(r.event_date),
             event_status: r.event_status ?? "finished",
           }));
 
           if (fromDb.length >= NEXT_EVENTS_COUNT) {
-            return Response.json({ events: fromDb, finishedEvents });
+            return Response.json({ events: fromDb, finishedEvents }, { headers: noCacheHeaders });
           }
 
           const fromEspn = await fetchUpcomingEvents(NEXT_EVENTS_COUNT);
@@ -55,12 +64,12 @@ export async function GET() {
             fromDb.push({
               id: e.espn_event_id,
               name: e.name,
-              event_date: e.event_date,
+              event_date: toDateOnly(e.event_date) ?? e.event_date,
               event_status: "upcoming",
             });
           }
 
-          return Response.json({ events: fromDb, finishedEvents });
+          return Response.json({ events: fromDb, finishedEvents }, { headers: noCacheHeaders });
         }
       } catch {
         // fall through to ESPN
@@ -68,20 +77,23 @@ export async function GET() {
     }
 
     const upcoming = await fetchUpcomingEvents(NEXT_EVENTS_COUNT);
-    return Response.json({
-      events: upcoming.map((e) => ({
-        id: e.espn_event_id,
-        name: e.name,
-        event_date: e.event_date,
-        event_status: "upcoming",
-      })),
-      finishedEvents: [],
-    });
+    return Response.json(
+      {
+        events: upcoming.map((e) => ({
+          id: e.espn_event_id,
+          name: e.name,
+          event_date: toDateOnly(e.event_date) ?? e.event_date,
+          event_status: "upcoming",
+        })),
+        finishedEvents: [],
+      },
+      { headers: noCacheHeaders }
+    );
   } catch (e) {
     console.error(e);
     return Response.json(
       { error: e instanceof Error ? e.message : "Failed to fetch events" },
-      { status: 500 }
+      { status: 500, headers: noCacheHeaders }
     );
   }
 }

@@ -16,14 +16,14 @@ export function getDateInEST(isoDateString: string): string {
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-/** Format YYYY-MM-DD as "28 Feb 2026" without timezone (treats string as calendar date). */
+/** Format YYYY-MM-DD as "28 Feb 2026". Uses only first 10 chars so ISO datetimes never shift to next day. */
 export function formatEventDateDisplay(dateStr: string | null | undefined): string {
-  if (!dateStr) return "";
-  const s = String(dateStr).slice(0, 10);
+  if (dateStr == null || dateStr === "") return "";
+  const s = String(dateStr).trim().slice(0, 10);
+  if (s.length < 10) return String(dateStr);
   const [y, m, d] = s.split("-").map(Number);
-  if (!y || !m || !d) return dateStr;
+  if (!y || !m || !d || m < 1 || m > 12 || d < 1 || d > 31) return s;
   const month = MONTHS[m - 1];
-  if (!month) return dateStr;
   return `${d} ${month} ${y}`;
 }
 
