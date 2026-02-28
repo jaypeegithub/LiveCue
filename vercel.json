@@ -1,0 +1,6 @@
+{
+  "crons": [
+    { "path": "/api/cron/sync", "schedule": "59 23 * * 0" },
+    { "path": "/api/cron/fight-status", "schedule": "* * * * *" }
+  ]
+}

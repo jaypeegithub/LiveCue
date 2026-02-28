@@ -79,6 +79,8 @@ export type EventMainCard = {
   espn_event_id: string;
   eventName: string;
   eventDate: string | null;
+  /** ISO date-time when the event starts (from ESPN event.date) */
+  eventStartTime: string | null;
   mainCard: MainCardFight[];
 };
 
@@ -114,10 +116,12 @@ export async function fetchEventMainCard(
   }));
 
   const eventDateStr = event.date?.slice(0, 10) ?? null;
+  const eventStartTime = event.date ?? null;
   return {
     espn_event_id: event.id,
     eventName: event.name,
     eventDate: eventDateStr,
+    eventStartTime,
     mainCard: mainCardFights,
   };
   } catch {
