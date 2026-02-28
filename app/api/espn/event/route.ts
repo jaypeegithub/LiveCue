@@ -20,7 +20,7 @@ export async function GET(request: Request) {
         if (!eventError && eventRow) {
           const { data: fights, error: fightsError } = await supabase
             .from("fights")
-            .select("weight_class, fighter1_name, fighter2_name, fighter1_record, fighter2_record, status")
+            .select("fighter1_name, fighter2_name, status")
             .eq("event_id", eventRow.id)
             .order("order_index", { ascending: true });
 
@@ -28,12 +28,12 @@ export async function GET(request: Request) {
             return Response.json({
               eventName: eventRow.name,
               eventId: eventRow.espn_event_id,
-              mainCard: fights.map((f: { weight_class: string | null; fighter1_name: string; fighter2_name: string; fighter1_record: string | null; fighter2_record: string | null; status: string }) => ({
-                weightClass: f.weight_class ?? "",
+              mainCard: fights.map((f: { fighter1_name: string; fighter2_name: string; status: string }) => ({
+                weightClass: "",
                 fighter1: f.fighter1_name,
                 fighter2: f.fighter2_name,
-                record1: f.fighter1_record ?? "",
-                record2: f.fighter2_record ?? "",
+                record1: "",
+                record2: "",
                 status: f.status,
               })),
             });

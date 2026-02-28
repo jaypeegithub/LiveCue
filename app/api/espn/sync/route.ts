@@ -53,11 +53,8 @@ export async function POST() {
         const fightRows = data.mainCard.map((f, i) => ({
           event_id: eventRow.id,
           espn_competition_id: f.espn_competition_id,
-          weight_class: f.weightClass || null,
           fighter1_name: f.fighter1,
           fighter2_name: f.fighter2,
-          fighter1_record: f.record1 || null,
-          fighter2_record: f.record2 || null,
           status: f.status,
           order_index: i,
         }));

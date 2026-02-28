@@ -16,7 +16,7 @@ export async function GET() {
           .limit(FETCH_EVENTS_LIMIT);
 
         if (!error && rows?.length) {
-          const today = new Date().toISOString().slice(0, 10);
+          const today = getTodayEST();
           const upcoming = rows.filter((r) => {
             const eventDate = r.event_date ? String(r.event_date).slice(0, 10) : "";
             return eventDate >= today;

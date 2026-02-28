@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { fetchEventMainCard } from "@/lib/espn-event";
+import { fetchEventMainCard, getTodayEST } from "@/lib/espn-event";
 import { supabase } from "@/lib/supabase-server";
 
 /** Allow time for fight updates plus optional sync (next 3 events) when all finished. */
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getTodayEST();
 
     const { data: events, error: eventsError } = await supabase
       .from("events")
@@ -110,11 +110,8 @@ export async function GET(request: NextRequest) {
       const fightRows = data.mainCard.map((f, i) => ({
         event_id: event.id,
         espn_competition_id: f.espn_competition_id,
-        weight_class: f.weightClass || null,
         fighter1_name: f.fighter1,
         fighter2_name: f.fighter2,
-        fighter1_record: f.record1 || null,
-        fighter2_record: f.record2 || null,
         status: f.status,
         order_index: i,
       }));

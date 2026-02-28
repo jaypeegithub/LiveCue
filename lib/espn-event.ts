@@ -1,6 +1,19 @@
 const ESPN_SCOREBOARD =
   "https://site.api.espn.com/apis/site/v2/sports/mma/ufc/scoreboard";
 
+const EST = "America/New_York";
+
+/** Current date in EST (YYYY-MM-DD). */
+export function getTodayEST(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: EST });
+}
+
+/** Parse an ISO date-time and return the date in EST (YYYY-MM-DD). */
+export function getDateInEST(isoDateString: string): string {
+  if (!isoDateString) return "";
+  return new Date(isoDateString).toLocaleDateString("en-CA", { timeZone: EST });
+}
+
 export type Competition = {
   id: string;
   date?: string;
@@ -133,18 +146,18 @@ export async function fetchUpcomingEvents(
   limit: number
 ): Promise<UpcomingEventSummary[]> {
   try {
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const todayEST = getTodayEST();
+    const dateStr = todayEST.replace(/-/g, "");
     const res = await fetch(`${ESPN_SCOREBOARD}?dates=${dateStr}`, {
       next: { revalidate: 60 },
     });
     if (!res.ok) return [];
     const data: ScoreboardResponse = await res.json();
     const calendar = data.leagues?.[0]?.calendar ?? [];
-    const today = new Date().toISOString().slice(0, 10);
     let items = calendar.filter(
       (item) =>
         item.event?.$ref &&
-        (item.startDate?.slice(0, 10) ?? "") >= today
+        getDateInEST(item.startDate ?? "") >= todayEST
     );
     if (items.length < limit) {
       items = calendar.filter((item) => item.event?.$ref).slice(0, limit);
@@ -158,7 +171,7 @@ export async function fetchUpcomingEvents(
       const espn_event_id = match ? match[1] : "";
       if (!espn_event_id) continue;
       const startDate = item.startDate ?? "";
-      const event_date = startDate.slice(0, 10);
+      const event_date = getDateInEST(startDate);
       const event_date_yyyymmdd = event_date.replace(/-/g, "");
       result.push({
         espn_event_id,
