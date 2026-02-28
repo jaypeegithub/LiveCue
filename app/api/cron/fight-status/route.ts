@@ -132,6 +132,11 @@ export async function GET(request: NextRequest) {
       const allNowFinished = fightRows.every((f) => f.status === "Finished");
 
       if (allNowFinished) {
+        await supabase
+          .from("events")
+          .update({ event_status: "finished" })
+          .eq("id", event.id);
+
         const baseUrl =
           process.env.VERCEL_URL
             ? `https://${process.env.VERCEL_URL}`

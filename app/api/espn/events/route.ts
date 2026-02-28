@@ -2,6 +2,7 @@ import { fetchUpcomingEvents, getTodayEST } from "@/lib/espn-event";
 import { supabase } from "@/lib/supabase-server";
 
 const NEXT_EVENTS_COUNT = 3;
+const FINISHED_EVENTS_LIMIT = 10;
 /** Fetch extra events so we can skip ones where all fights are Finished. */
 const FETCH_EVENTS_LIMIT = 15;
 
@@ -11,7 +12,7 @@ export async function GET() {
       try {
         const { data: rows, error } = await supabase
           .from("events")
-          .select("id, espn_event_id, name, event_date")
+          .select("id, espn_event_id, name, event_date, event_status")
           .order("event_date", { ascending: true })
           .limit(FETCH_EVENTS_LIMIT);
 
@@ -25,10 +26,25 @@ export async function GET() {
             id: r.espn_event_id,
             name: r.name,
             event_date: r.event_date ?? null,
+            event_status: r.event_status ?? "upcoming",
+          }));
+
+          const { data: finishedRows } = await supabase
+            .from("events")
+            .select("espn_event_id, name, event_date, event_status")
+            .eq("event_status", "finished")
+            .order("event_date", { ascending: false })
+            .limit(FINISHED_EVENTS_LIMIT);
+
+          const finishedEvents = (finishedRows ?? []).map((r) => ({
+            id: r.espn_event_id,
+            name: r.name,
+            event_date: r.event_date ?? null,
+            event_status: r.event_status ?? "finished",
           }));
 
           if (fromDb.length >= NEXT_EVENTS_COUNT) {
-            return Response.json({ events: fromDb });
+            return Response.json({ events: fromDb, finishedEvents });
           }
 
           const fromEspn = await fetchUpcomingEvents(NEXT_EVENTS_COUNT);
@@ -40,10 +56,11 @@ export async function GET() {
               id: e.espn_event_id,
               name: e.name,
               event_date: e.event_date,
+              event_status: "upcoming",
             });
           }
 
-          return Response.json({ events: fromDb });
+          return Response.json({ events: fromDb, finishedEvents });
         }
       } catch {
         // fall through to ESPN
@@ -56,7 +73,9 @@ export async function GET() {
         id: e.espn_event_id,
         name: e.name,
         event_date: e.event_date,
+        event_status: "upcoming",
       })),
+      finishedEvents: [],
     });
   } catch (e) {
     console.error(e);

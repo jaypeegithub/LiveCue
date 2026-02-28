@@ -14,6 +14,19 @@ export function getDateInEST(isoDateString: string): string {
   return new Date(isoDateString).toLocaleDateString("en-CA", { timeZone: EST });
 }
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** Format YYYY-MM-DD as "28 Feb 2026" without timezone (treats string as calendar date). */
+export function formatEventDateDisplay(dateStr: string | null | undefined): string {
+  if (!dateStr) return "";
+  const s = String(dateStr).slice(0, 10);
+  const [y, m, d] = s.split("-").map(Number);
+  if (!y || !m || !d) return dateStr;
+  const month = MONTHS[m - 1];
+  if (!month) return dateStr;
+  return `${d} ${month} ${y}`;
+}
+
 export type Competition = {
   id: string;
   date?: string;

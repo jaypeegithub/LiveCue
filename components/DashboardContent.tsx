@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { formatEventDateDisplay } from "@/lib/espn-event";
 
 type EventItem = { id: string; name: string; event_date: string | null };
 type FightItem = {
@@ -78,7 +79,7 @@ export default function DashboardContent() {
           {events.map((ev) => (
             <option key={ev.id} value={ev.id}>
               {ev.name}
-              {ev.event_date ? ` (${ev.event_date})` : ""}
+              {ev.event_date ? ` (${formatEventDateDisplay(ev.event_date)})` : ""}
             </option>
           ))}
         </select>

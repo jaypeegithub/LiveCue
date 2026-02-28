@@ -1,0 +1,4 @@
+-- Optional: delete past events (we now keep them and use event_status = 'finished' instead).
+-- Only run if you really want to remove old events.
+-- delete from public.events
+-- where event_date < (now() at time zone 'America/New_York')::date;

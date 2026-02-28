@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { getCurrentUser, signOut } from "@/lib/supabase";
+import { formatEventDateDisplay } from "@/lib/espn-event";
 import DashboardContent from "@/components/DashboardContent";
 
 type EventItem = { id: string; name: string; event_date: string | null };
@@ -77,7 +78,7 @@ function LandingContent() {
             {events.map((ev) => (
               <option key={ev.id} value={ev.id}>
                 {ev.name}
-                {ev.event_date ? ` (${ev.event_date})` : ""}
+                {ev.event_date ? ` (${formatEventDateDisplay(ev.event_date)})` : ""}
               </option>
             ))}
           </select>
