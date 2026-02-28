@@ -25,7 +25,7 @@ export async function GET(request: Request) {
 
           const { data: fights, error: fightsError } = await supabase
             .from("fights")
-            .select("fighter1_name, fighter2_name, status")
+            .select("id, fighter1_name, fighter2_name, status")
             .eq("event_id", eventRow.id)
             .order("order_index", { ascending: true });
 
@@ -33,7 +33,8 @@ export async function GET(request: Request) {
             return Response.json({
               eventName: eventRow.name,
               eventId: eventRow.espn_event_id,
-              mainCard: fights.map((f: { fighter1_name: string; fighter2_name: string; status: string }) => ({
+              mainCard: fights.map((f: { id: string; fighter1_name: string; fighter2_name: string; status: string }) => ({
+                id: f.id,
                 weightClass: "",
                 fighter1: f.fighter1_name,
                 fighter2: f.fighter2_name,
@@ -60,6 +61,7 @@ export async function GET(request: Request) {
             eventName: dataToday.eventName,
             eventId: dataToday.espn_event_id,
             mainCard: dataToday.mainCard.map((f) => ({
+              id: null,
               weightClass: f.weightClass,
               fighter1: f.fighter1,
               fighter2: f.fighter2,
@@ -80,6 +82,7 @@ export async function GET(request: Request) {
     eventName: data.eventName,
     eventId: data.espn_event_id,
     mainCard: data.mainCard.map((f) => ({
+      id: null,
       weightClass: f.weightClass,
       fighter1: f.fighter1,
       fighter2: f.fighter2,

@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { formatEventDateDisplay } from "@/lib/espn-event";
+import { supabase } from "@/lib/supabase";
 
 type EventItem = { id: string; name: string; event_date: string | null };
 type FightItem = {
+  id?: string | null;
   weightClass: string;
   fighter1: string;
   fighter2: string;
@@ -22,6 +24,8 @@ export default function DashboardContent() {
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [loadingFights, setLoadingFights] = useState(false);
   const [alertSubmitted, setAlertSubmitted] = useState(false);
+  const [alreadyWatchingMessage, setAlreadyWatchingMessage] = useState<string | null>(null);
+  const [watchError, setWatchError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/espn/events")
@@ -53,15 +57,45 @@ export default function DashboardContent() {
       .finally(() => setLoadingFights(false));
   }, [selectedEventId]);
 
+  const selectedFight = selectedFightIndex >= 0 ? fights[selectedFightIndex] : null;
   const canSubmit =
     selectedEventId &&
     selectedFightIndex >= 0 &&
-    fights[selectedFightIndex] &&
+    selectedFight &&
+    selectedFight.id &&
     alertMethod;
-  const selectedFight = selectedFightIndex >= 0 ? fights[selectedFightIndex] : null;
 
-  function handleAlertMe() {
-    if (!canSubmit || !selectedFight) return;
+  async function handleAlertMe() {
+    if (!canSubmit || !selectedFight?.id) return;
+    setWatchError(null);
+    setAlreadyWatchingMessage(null);
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      setWatchError("You must be logged in to watch a fight.");
+      return;
+    }
+    const res = await fetch("/api/watch", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        fight_id: selectedFight.id,
+        notification_preference: alertMethod,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setWatchError(data.error || "Something went wrong.");
+      return;
+    }
+    if (data.alreadyWatching) {
+      setAlreadyWatchingMessage(data.message ?? "You're already watching this fight.");
+      return;
+    }
     setAlertSubmitted(true);
   }
 
@@ -131,6 +165,16 @@ export default function DashboardContent() {
         </div>
       </div>
 
+      {alreadyWatchingMessage && (
+        <div className="livecue-card" style={{ borderColor: "var(--color-border)" }}>
+          <p style={{ margin: 0, fontSize: "0.9rem" }}>{alreadyWatchingMessage}</p>
+        </div>
+      )}
+      {watchError && (
+        <div className="livecue-card" style={{ borderColor: "var(--color-error, #c00)" }}>
+          <p style={{ margin: 0, fontSize: "0.9rem" }}>{watchError}</p>
+        </div>
+      )}
       {alertSubmitted ? (
         <div className="livecue-card livecue-alert-success">
           <p style={{ margin: 0, fontSize: "0.9rem" }}>
