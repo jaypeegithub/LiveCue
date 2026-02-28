@@ -82,7 +82,8 @@ export async function GET(request: NextRequest) {
 
       const data = await fetchEventMainCard(
         event.espn_event_id,
-        eventDateYyyyymmdd
+        eventDateYyyyymmdd,
+        { noCache: true }
       );
       if (!data?.mainCard?.length) continue;
 

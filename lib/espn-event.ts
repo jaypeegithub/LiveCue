@@ -110,11 +110,12 @@ export type EventMainCard = {
 
 export async function fetchEventMainCard(
   eventId: string,
-  eventDate: string
+  eventDate: string,
+  options?: { noCache?: boolean }
 ): Promise<EventMainCard | null> {
   try {
     const res = await fetch(`${ESPN_SCOREBOARD}?dates=${eventDate}`, {
-      next: { revalidate: 60 },
+      ...(options?.noCache ? { cache: "no-store" as RequestCache } : { next: { revalidate: 60 } }),
     });
     if (!res.ok) return null;
     const data: ScoreboardResponse = await res.json();

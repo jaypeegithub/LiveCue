@@ -97,6 +97,14 @@ body {
   margin-bottom: 1rem;
 }
 
+.livecue-section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 1rem 0;
+  letter-spacing: 0.02em;
+}
+
 .livecue-label {
   display: block;
   font-size: 0.7rem;

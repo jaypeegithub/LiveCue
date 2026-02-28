@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { getCurrentUser, signOut } from "@/lib/supabase";
 import DashboardContent from "@/components/DashboardContent";
+import DashboardSettings from "@/components/DashboardSettings";
 
 export default function DashboardPage() {
   const [checking, setChecking] = useState(true);
@@ -43,6 +44,8 @@ export default function DashboardPage() {
       </header>
 
       <DashboardContent />
+
+      <DashboardSettings />
 
       <footer className="livecue-footer">
         <Link href="/">Home</Link>
