@@ -1,4 +1,4 @@
-import { fetchUpcomingEvents } from "@/lib/espn-event";
+import { fetchUpcomingEvents, getTodayEST } from "@/lib/espn-event";
 import { supabase } from "@/lib/supabase-server";
 
 const NEXT_EVENTS_COUNT = 3;
