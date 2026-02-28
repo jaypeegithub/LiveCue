@@ -70,13 +70,13 @@ export async function GET(request: NextRequest) {
 
       const eventDateYyyyymmdd = eventDate.replace(/-/g, "");
 
-      const { data: fights, error: fightsError } = await supabase
+      const { data: fightsBefore, error: fightsError } = await supabase
         .from("fights")
-        .select("id, status")
+        .select("id, order_index, status")
         .eq("event_id", event.id);
 
-      if (!fightsError && fights?.length) {
-        const allFinished = fights.every((f) => f.status === "Finished");
+      if (!fightsError && fightsBefore?.length) {
+        const allFinished = fightsBefore.every((f) => f.status === "Finished");
         if (allFinished) continue;
       }
 
@@ -127,6 +127,45 @@ export async function GET(request: NextRequest) {
           { ok: false, error: upsertError.message },
           { status: 500 }
         );
+      }
+
+      const beforeById = new Map(
+        (fightsBefore ?? []).map((f) => [f.id, { status: f.status, order_index: f.order_index }])
+      );
+
+      const { data: fightsAfter } = await supabase
+        .from("fights")
+        .select("id, order_index, fighter1_name, fighter2_name, status")
+        .eq("event_id", event.id);
+
+      if (fightsAfter?.length) {
+        for (const fight of fightsAfter) {
+          if (fight.status !== "Finished") continue;
+          const before = beforeById.get(fight.id);
+          if (before?.status === "Finished") continue;
+
+          const nextFight = fightsAfter.find(
+            (f) => f.order_index === fight.order_index + 1
+          );
+          if (!nextFight) continue;
+
+          const { data: watches } = await supabase
+            .from("user_fight_watches")
+            .select("user_id")
+            .eq("fight_id", nextFight.id)
+            .eq("opted_in", true);
+
+          if (watches?.length) {
+            const message = `${nextFight.fighter1_name} vs ${nextFight.fighter2_name} is up next.`;
+            for (const w of watches) {
+              await supabase.from("notification_logs").insert({
+                user_id: w.user_id,
+                fight_id: nextFight.id,
+                message,
+              });
+            }
+          }
+        }
       }
 
       const allNowFinished = fightRows.every((f) => f.status === "Finished");
