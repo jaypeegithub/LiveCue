@@ -68,8 +68,6 @@ export type UpcomingEventSummary = {
   event_date_yyyymmdd: string;
 };
 
-const MAIN_CARD_FIGHT_COUNT = 9;
-
 function getFighterName(comp: Competition, order: 1 | 2): string {
   const c = comp.competitors?.[order - 1];
   return c?.athlete?.displayName || c?.athlete?.fullName || "TBD";
@@ -129,7 +127,7 @@ export async function fetchEventMainCard(
     const bStart = b.startDate || b.date || "";
     return aStart.localeCompare(bStart);
   });
-  const mainCard = sorted.slice(-MAIN_CARD_FIGHT_COUNT).reverse();
+  const mainCard = sorted.slice().reverse();
 
   const mainCardFights: MainCardFight[] = mainCard.map((comp) => ({
     espn_competition_id: comp.id,
