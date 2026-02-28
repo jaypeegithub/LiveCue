@@ -93,11 +93,14 @@ function LandingContent() {
             className="livecue-select"
           >
             <option value={-1}>Select fight</option>
-            {fights.map((f, i) => (
-              <option key={i} value={i}>
-                {f.fighter1} vs {f.fighter2}
-              </option>
-            ))}
+            {fights.map(
+              (f, i) =>
+                f.status === "Not started" ? (
+                  <option key={i} value={i}>
+                    {f.fighter1} vs {f.fighter2}
+                  </option>
+                ) : null
+            )}
           </select>
         </div>
         <div className="livecue-cta-small-wrap">
