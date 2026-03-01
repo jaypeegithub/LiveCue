@@ -190,7 +190,7 @@ export async function GET(request: NextRequest) {
             .eq("opted_in", true);
 
           if (watches?.length) {
-            const message = `${nextFight.fighter1_name} vs ${nextFight.fighter2_name} is up next!`;
+            const message = `${fight.fighter1_name} vs ${fight.fighter2_name} fight is finished. ${nextFight.fighter1_name} vs ${nextFight.fighter2_name} fight is up next!`;
             for (const w of watches) {
               const { error: insertErr } = await supabase
                 .from("notification_logs")
