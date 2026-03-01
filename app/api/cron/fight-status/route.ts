@@ -176,8 +176,9 @@ export async function GET(request: NextRequest) {
           // Only notify when we saw the transition (had previous state and it wasn't already Finished)
           if (!before || before.status === "Finished") continue;
 
-          // Fight n just finished; n+1 is up next. Notify users watching n+1.
-          const nextOrderIndex = Number(fight.order_index) + 1;
+          // Fight n just finished; the next fight in card order is the one with lower order_index
+          // (mainCard is reversed: index 0 = main event last, highest index = opener first).
+          const nextOrderIndex = Number(fight.order_index) - 1;
           const nextFight = fightsAfter.find(
             (f) => Number(f.order_index) === nextOrderIndex
           );
@@ -191,6 +192,13 @@ export async function GET(request: NextRequest) {
 
           if (watches?.length) {
             const message = `${fight.fighter1_name} vs ${fight.fighter2_name} fight is finished. ${nextFight.fighter1_name} vs ${nextFight.fighter2_name} fight is up next!`;
+            console.log("[cron/fight-status] up-next notification", {
+              N_order_index: fight.order_index,
+              N: `${fight.fighter1_name} vs ${fight.fighter2_name}`,
+              N_plus_1_order_index: nextFight.order_index,
+              N_plus_1: `${nextFight.fighter1_name} vs ${nextFight.fighter2_name}`,
+              message,
+            });
             for (const w of watches) {
               const { error: insertErr } = await supabase
                 .from("notification_logs")
