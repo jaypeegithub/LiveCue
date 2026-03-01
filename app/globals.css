@@ -384,3 +384,247 @@ body {
 .livecue-back:hover {
   color: #a855f7;
 }
+
+/* Dashboard layout and sidebar */
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(12, 12, 14, 0.9);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.dashboard-hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #e4e4e7;
+}
+.dashboard-hamburger:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.dashboard-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  margin: 0 auto;
+}
+
+.dashboard-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.dashboard-sidebar-wrap {
+  flex-shrink: 0;
+  position: relative;
+}
+
+@media (min-width: 769px) {
+  .dashboard-hamburger {
+    display: none;
+  }
+  .dashboard-sidebar-wrap {
+    width: 220px;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    max-height: calc(100vh - 60px);
+  }
+  .dashboard-sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    transform: none;
+    padding: 1rem 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(18, 18, 20, 0.6);
+    border-radius: 0;
+  }
+  .dashboard-main {
+    margin-left: 0;
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-sidebar-wrap {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 100;
+    width: 0;
+    pointer-events: none;
+  }
+  .dashboard-sidebar-wrap--open {
+    width: 100%;
+    pointer-events: auto;
+  }
+  .dashboard-sidebar-wrap--open .dashboard-sidebar {
+    transform: translateX(0);
+  }
+  .dashboard-sidebar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: min(280px, 85vw);
+    max-width: 320px;
+    padding: 1.25rem 1rem;
+    background: #18181b;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    overflow-y: auto;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+    z-index: 1;
+  }
+  .dashboard-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 0;
+  }
+  .dashboard-main {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.dashboard-sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.dashboard-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.9rem;
+  color: #e4e4e7;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.dashboard-sidebar-item:hover:not(.dashboard-sidebar-item--disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+.dashboard-sidebar-item--active {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+}
+.dashboard-sidebar-item--disabled {
+  color: #71717a;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.dashboard-main {
+  padding: 1.25rem 1.5rem;
+  overflow-y: auto;
+}
+
+.dashboard-content h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 1rem 0;
+}
+
+.dashboard-content .livecue-form-group {
+  margin-bottom: 1rem;
+}
+
+.dashboard-content .livecue-btn {
+  margin-top: 0.5rem;
+}
+
+.dashboard-watches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dashboard-watch-card {
+  background: rgba(24, 24, 27, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.dashboard-watch-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 0.35rem 0;
+}
+
+.dashboard-watch-card .watch-meta {
+  font-size: 0.85rem;
+  color: #71717a;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-watch-card .watch-status {
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.dashboard-footer {
+  text-align: center;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.8rem;
+  color: #71717a;
+}
+
+.dashboard-footer a,
+.dashboard-footer button {
+  color: #a855f7;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.dashboard-footer a:hover,
+.dashboard-footer button:hover {
+  text-decoration: underline;
+}
+
+.dashboard-footer span {
+  margin: 0 0.5rem;
+  color: #52525b;
+}

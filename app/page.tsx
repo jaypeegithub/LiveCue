@@ -163,6 +163,8 @@ export default function Home() {
         <DashboardContent />
 
         <footer className="livecue-footer">
+          <Link href="/dashboard">My Account</Link>
+          <span>·</span>
           <Link href="/faq">FAQ</Link>
           <span>·</span>
           <Link href="/privacy">Privacy</Link>
