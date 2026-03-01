@@ -173,11 +173,13 @@ export async function GET(request: NextRequest) {
         for (const fight of fightsAfter) {
           if (fight.status !== "Finished") continue;
           const before = beforeById.get(fight.id);
-          if (before?.status === "Finished") continue;
+          // Only notify when we saw the transition (had previous state and it wasn't already Finished)
+          if (!before || before.status === "Finished") continue;
 
           // Fight n just finished; n+1 is up next. Notify users watching n+1.
+          const nextOrderIndex = Number(fight.order_index) + 1;
           const nextFight = fightsAfter.find(
-            (f) => f.order_index === fight.order_index + 1
+            (f) => Number(f.order_index) === nextOrderIndex
           );
           if (!nextFight) continue;
 
@@ -190,11 +192,20 @@ export async function GET(request: NextRequest) {
           if (watches?.length) {
             const message = `${nextFight.fighter1_name} vs ${nextFight.fighter2_name} is up next!`;
             for (const w of watches) {
-              await supabase.from("notification_logs").insert({
-                user_id: w.user_id,
-                fight_id: nextFight.id,
-                message,
-              });
+              const { error: insertErr } = await supabase
+                .from("notification_logs")
+                .insert({
+                  user_id: w.user_id,
+                  fight_id: nextFight.id,
+                  message,
+                });
+              if (insertErr) {
+                console.error("[cron/fight-status] notification_logs insert", {
+                  user_id: w.user_id,
+                  fight_id: nextFight.id,
+                  error: insertErr.message,
+                });
+              }
             }
           }
         }
