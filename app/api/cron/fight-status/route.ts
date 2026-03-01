@@ -175,6 +175,7 @@ export async function GET(request: NextRequest) {
           const before = beforeById.get(fight.id);
           if (before?.status === "Finished") continue;
 
+          // Fight n just finished; n+1 is up next. Notify users watching n+1.
           const nextFight = fightsAfter.find(
             (f) => f.order_index === fight.order_index + 1
           );
@@ -187,7 +188,7 @@ export async function GET(request: NextRequest) {
             .eq("opted_in", true);
 
           if (watches?.length) {
-            const message = `${nextFight.fighter1_name} vs ${nextFight.fighter2_name} is up next.`;
+            const message = `${nextFight.fighter1_name} vs ${nextFight.fighter2_name} is up next!`;
             for (const w of watches) {
               await supabase.from("notification_logs").insert({
                 user_id: w.user_id,
