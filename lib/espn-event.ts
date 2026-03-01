@@ -8,6 +8,14 @@ export function getTodayEST(): string {
   return new Date().toLocaleDateString("en-CA", { timeZone: EST });
 }
 
+/** Tomorrow's date in EST (YYYY-MM-DD). Use when querying events so we include tonight's event if stored as next day. */
+export function getTomorrowEST(): string {
+  const today = getTodayEST();
+  const [y, m, d] = today.split("-").map(Number);
+  const next = new Date(Date.UTC(y, m - 1, d + 1));
+  return next.toISOString().slice(0, 10);
+}
+
 /** Parse an ISO date-time and return the date in EST (YYYY-MM-DD). */
 export function getDateInEST(isoDateString: string): string {
   if (!isoDateString) return "";

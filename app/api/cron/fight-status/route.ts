@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { fetchEventMainCard, getTodayEST } from "@/lib/espn-event";
+import { fetchEventMainCard, getTodayEST, getTomorrowEST } from "@/lib/espn-event";
 import { supabase } from "@/lib/supabase-server";
 
 /** Allow time for fight updates plus optional sync (next 3 events) when all finished. */
@@ -31,11 +31,13 @@ export async function GET(request: NextRequest) {
 
   try {
     const today = getTodayEST();
+    const tomorrow = getTomorrowEST();
 
+    // Include events through tomorrow so we catch "tonight's" event if stored as next calendar day
     const { data: events, error: eventsError } = await supabase
       .from("events")
       .select("id, espn_event_id, name, event_date, event_start_time")
-      .lte("event_date", today)
+      .lte("event_date", tomorrow)
       .order("event_date", { ascending: false });
 
     if (eventsError || !events?.length) {
@@ -127,15 +129,33 @@ export async function GET(request: NextRequest) {
 
       if (fightRows.length === 0) continue;
 
+      const upsertOptions = { onConflict: "event_id,espn_competition_id" };
+      console.log("[cron/fight-status] upsert request", {
+        eventId: event.espn_event_id,
+        eventName: event.name,
+        rowCount: fightRows.length,
+        body: fightRows,
+        options: upsertOptions,
+      });
+
       const { error: upsertError } = await supabase.from("fights").upsert(
         fightRows,
-        { onConflict: "event_id,espn_competition_id" }
+        upsertOptions
       );
 
       if (upsertError) {
-        console.error("[cron/fight-status] upsert", event.espn_event_id, upsertError);
+        const errObj = upsertError as unknown as Record<string, unknown>;
+        const fullError = {
+          message: upsertError.message,
+          details: errObj.details,
+          hint: errObj.hint,
+          code: errObj.code,
+          ...Object.fromEntries(Object.entries(errObj).filter(([k]) => !["stack", "name"].includes(k))),
+        };
+        console.error("[cron/fight-status] upsert Supabase error (full object)", JSON.stringify(fullError, null, 2));
+        console.error("[cron/fight-status] upsert request body that failed", JSON.stringify(fightRows, null, 2));
         return Response.json(
-          { ok: false, error: upsertError.message },
+          { ok: false, error: upsertError.message, details: fullError, bodySent: fightRows },
           { status: 500 }
         );
       }
