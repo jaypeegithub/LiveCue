@@ -108,14 +108,24 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const fightRows = data.mainCard.map((f, i) => ({
-        event_id: event.id,
-        espn_competition_id: f.espn_competition_id,
-        fighter1_name: f.fighter1,
-        fighter2_name: f.fighter2,
-        status: f.status,
-        order_index: i,
-      }));
+      const validStatuses = ["Finished", "In progress", "Not started"] as const;
+      const fightRows = data.mainCard
+        .map((f, i) => {
+          const espnId = f.espn_competition_id != null ? String(f.espn_competition_id).trim() : "";
+          if (!espnId) return null;
+          const status = validStatuses.includes(f.status) ? f.status : "Not started";
+          return {
+            event_id: event.id,
+            espn_competition_id: espnId,
+            fighter1_name: f.fighter1 != null ? String(f.fighter1).trim() || "TBD" : "TBD",
+            fighter2_name: f.fighter2 != null ? String(f.fighter2).trim() || "TBD" : "TBD",
+            status,
+            order_index: i,
+          };
+        })
+        .filter((row): row is NonNullable<typeof row> => row !== null);
+
+      if (fightRows.length === 0) continue;
 
       const { error: upsertError } = await supabase.from("fights").upsert(
         fightRows,
