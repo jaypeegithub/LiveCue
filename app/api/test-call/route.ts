@@ -1,22 +1,30 @@
 import { NextResponse } from "next/server";
 import Twilio from "twilio";
 
-const TEST_PHONE = "REDACTED";
-
 /**
- * GET /api/test-call — Initiates a Twilio voice call to the hardcoded test number
- * with the same flow as the notification trigger (TwiML at /api/test-call/voice).
+ * GET /api/test-call — Initiates a Twilio voice call to the number in
+ * TEST_CALL_PHONE (env). Same flow as the notification trigger (TwiML at /api/test-call/voice).
  */
 export async function GET() {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const authToken = process.env.TWILIO_AUTH_TOKEN;
   const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+  const testPhone = process.env.TEST_CALL_PHONE?.trim();
 
   if (!accountSid || !authToken || !fromNumber) {
     return NextResponse.json(
       {
         ok: false,
         error: "Twilio not configured. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER.",
+      },
+      { status: 503 }
+    );
+  }
+  if (!testPhone) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Test call number not set. Set TEST_CALL_PHONE in env (e.g. +1xxxxxxxxxx).",
       },
       { status: 503 }
     );
@@ -42,7 +50,7 @@ export async function GET() {
   try {
     const client = Twilio(accountSid, authToken);
     const call = await client.calls.create({
-      to: TEST_PHONE,
+      to: testPhone,
       from: fromNumber,
       url: voiceUrl,
     });
@@ -51,7 +59,7 @@ export async function GET() {
       ok: true,
       message: "Test call initiated",
       callSid: call.sid,
-      to: TEST_PHONE,
+      to: testPhone,
     });
   } catch (err: unknown) {
     const twilioErr = err as { message?: string; code?: number; status?: number; moreInfo?: string };
