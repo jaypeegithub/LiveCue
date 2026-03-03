@@ -37,6 +37,7 @@ export async function GET() {
     );
   }
   const voiceUrl = `${baseUrl}/api/test-call/voice`;
+  console.log("[api/test-call] voiceUrl (TwiML):", voiceUrl);
 
   try {
     const client = Twilio(accountSid, authToken);
@@ -45,15 +46,23 @@ export async function GET() {
       from: fromNumber,
       url: voiceUrl,
     });
+    console.log("[api/test-call] call created:", call.sid);
     return NextResponse.json({
       ok: true,
       message: "Test call initiated",
       callSid: call.sid,
       to: TEST_PHONE,
     });
-  } catch (err) {
+  } catch (err: unknown) {
+    const twilioErr = err as { message?: string; code?: number; status?: number; moreInfo?: string };
     const message = err instanceof Error ? err.message : "Twilio call failed";
-    console.error("[api/test-call]", err);
+    console.error("[api/test-call] Twilio API error:", {
+      message: twilioErr?.message ?? message,
+      code: twilioErr?.code,
+      status: twilioErr?.status,
+      moreInfo: twilioErr?.moreInfo,
+      err,
+    });
     return NextResponse.json(
       { ok: false, error: message },
       { status: 500 }
