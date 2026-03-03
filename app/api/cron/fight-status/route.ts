@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import Twilio from "twilio";
 import { fetchEventMainCard, getTodayEST, getTomorrowEST } from "@/lib/espn-event";
 import { supabase } from "@/lib/supabase-server";
 
@@ -184,22 +185,100 @@ export async function GET(request: NextRequest) {
           );
           if (!nextFight) continue;
 
-          const { data: watches } = await supabase
+          const { data: watches, error: watchesError } = await supabase
             .from("user_fight_watches")
-            .select("user_id")
+            .select("user_id, notification_preference")
             .eq("fight_id", nextFight.id)
             .eq("opted_in", true);
 
+          if (watchesError) {
+            console.error("[cron/fight-status] user_fight_watches query", {
+              fight_id: nextFight.id,
+              error: watchesError.message,
+            });
+          }
+          if (!watches?.length) {
+            console.log("[cron/fight-status] no opted-in watchers for next fight", {
+              next_fight_id: nextFight.id,
+              next_fight: `${nextFight.fighter1_name} vs ${nextFight.fighter2_name}`,
+            });
+          }
+
           if (watches?.length) {
             const message = `${fight.fighter1_name} vs ${fight.fighter2_name} fight is finished. ${nextFight.fighter1_name} vs ${nextFight.fighter2_name} fight is up next!`;
-            console.log("[cron/fight-status] up-next notification", {
+            console.log("[cron/fight-status] up-next notification (watchers of *next* fight)", {
+              next_fight_id: nextFight.id,
+              watcher_count: watches.length,
               N_order_index: fight.order_index,
               N: `${fight.fighter1_name} vs ${fight.fighter2_name}`,
               N_plus_1_order_index: nextFight.order_index,
               N_plus_1: `${nextFight.fighter1_name} vs ${nextFight.fighter2_name}`,
               message,
             });
+
+            const baseUrl =
+              process.env.VERCEL_URL
+                ? `https://${process.env.VERCEL_URL}`
+                : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+            const voiceUrl = `${baseUrl}/api/twilio/voice?fighter1=${encodeURIComponent(nextFight.fighter1_name)}&fighter2=${encodeURIComponent(nextFight.fighter2_name)}`;
+
+            const accountSid = process.env.TWILIO_ACCOUNT_SID;
+            const authToken = process.env.TWILIO_AUTH_TOKEN;
+            const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+            const twilioClient =
+              accountSid && authToken
+                ? Twilio(accountSid, authToken)
+                : null;
+
             for (const w of watches) {
+              const pref = w.notification_preference ?? "sms";
+              if (
+                pref === "call" &&
+                twilioClient &&
+                fromNumber
+              ) {
+                try {
+                  const { data: authData, error: authErr } =
+                    await supabase.auth.admin.getUserById(w.user_id);
+                  if (authErr) {
+                    console.error(
+                      "[cron/fight-status] auth.admin.getUserById",
+                      { user_id: w.user_id, error: authErr.message }
+                    );
+                  }
+                  const phone = (
+                    (authData?.user?.user_metadata?.phone_number as string) ?? ""
+                  ).trim();
+                  if (phone) {
+                    await twilioClient.calls.create({
+                      to: phone,
+                      from: fromNumber,
+                      url: voiceUrl,
+                    });
+                    console.log("[cron/fight-status] Twilio call initiated", {
+                      user_id: w.user_id,
+                      to: phone.slice(-4).padStart(phone.length, "*"),
+                    });
+                  } else {
+                    console.warn(
+                      "[cron/fight-status] no phone for user (call skipped)",
+                      { user_id: w.user_id }
+                    );
+                  }
+                } catch (callErr) {
+                  console.error(
+                    "[cron/fight-status] Twilio call failed",
+                    { user_id: w.user_id },
+                    callErr
+                  );
+                }
+              } else if (pref === "call" && (!twilioClient || !fromNumber)) {
+                console.warn(
+                  "[cron/fight-status] Twilio not configured (call skipped)",
+                  { user_id: w.user_id }
+                );
+              }
+
               const { error: insertErr } = await supabase
                 .from("notification_logs")
                 .insert({
@@ -212,6 +291,10 @@ export async function GET(request: NextRequest) {
                   user_id: w.user_id,
                   fight_id: nextFight.id,
                   error: insertErr.message,
+                });
+              } else {
+                console.log("[cron/fight-status] notification_logs inserted", {
+                  user_id: w.user_id,
                 });
               }
             }
