@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import Twilio from "twilio";
 
 /**
- * GET /api/test-call — Initiates a Twilio voice call to the number in
- * TEST_CALL_PHONE (env). Same flow as the notification trigger (TwiML at /api/test-call/voice).
+ * GET /api/test-call — Initiates a Twilio voice call to TEST_CALL_PHONE (env). TwiML at /api/test-call/voice.
  */
 export async function GET() {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -30,10 +29,13 @@ export async function GET() {
     );
   }
 
-  const baseUrl =
-    process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  // Use a stable production URL for TwiML so Twilio never hits a building/preview deployment (which returns HTML and causes Document parse failure).
+  const baseUrl = (
+    process.env.TWILIO_TWIML_BASE_URL?.trim() ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "http://localhost:3000"
+  ).replace(/\/$/, "");
   if (baseUrl.startsWith("http://localhost") || baseUrl.includes("127.0.0.1")) {
     return NextResponse.json(
       {
@@ -44,12 +46,8 @@ export async function GET() {
       { status: 400 }
     );
   }
-  let voiceUrl = `${baseUrl}/api/test-call/voice`;
-  const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
-  if (bypassSecret) {
-    voiceUrl += `?x-vercel-set-bypass-cookie=true&x-vercel-protection-bypass=${encodeURIComponent(bypassSecret)}`;
-  }
-  console.log("[api/test-call] voiceUrl (TwiML):", bypassSecret ? "(with bypass)" : voiceUrl);
+  const voiceUrl = `${baseUrl}/api/test-call/voice`;
+  console.log("[api/test-call] voiceUrl (TwiML):", voiceUrl);
 
   try {
     const client = Twilio(accountSid, authToken);

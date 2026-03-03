@@ -216,15 +216,14 @@ export async function GET(request: NextRequest) {
               message,
             });
 
-            const baseUrl =
-              process.env.VERCEL_URL
-                ? `https://${process.env.VERCEL_URL}`
-                : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-            let voiceUrl = `${baseUrl}/api/twilio/voice?fighter1=${encodeURIComponent(nextFight.fighter1_name)}&fighter2=${encodeURIComponent(nextFight.fighter2_name)}`;
-            const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
-            if (bypassSecret) {
-              voiceUrl += `&x-vercel-set-bypass-cookie=true&x-vercel-protection-bypass=${encodeURIComponent(bypassSecret)}`;
-            }
+            // Use a stable production URL for TwiML so Twilio never hits a building/preview deployment.
+            const baseUrl = (
+              process.env.TWILIO_TWIML_BASE_URL?.trim() ||
+              (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+              process.env.NEXT_PUBLIC_APP_URL ||
+              "http://localhost:3000"
+            ).replace(/\/$/, "");
+            const voiceUrl = `${baseUrl}/api/twilio/voice?fighter1=${encodeURIComponent(nextFight.fighter1_name)}&fighter2=${encodeURIComponent(nextFight.fighter2_name)}`;
 
             const accountSid = process.env.TWILIO_ACCOUNT_SID;
             const authToken = process.env.TWILIO_AUTH_TOKEN;
