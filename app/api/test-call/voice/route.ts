@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 const TEST_MESSAGE =
   "LiveCue test call. Your notification system is working.";
 
@@ -24,7 +26,6 @@ export async function GET() {
   return buildTwimlResponse();
 }
 
-export async function POST() {
-  console.log("[api/test-call/voice] POST – TwiML requested (Twilio webhook)");
+export async function POST(_request: Request) {
   return buildTwimlResponse();
 }
