@@ -7,12 +7,9 @@ import { supabase } from "@/lib/supabase-server";
 export const maxDuration = 90;
 
 /**
- * Vercel Cron: invoked every minute. Does work only when the current event
- * has started (event_date <= today and current time >= event_start_time).
- * Before start we return immediately using stored event_start_time (no ESPN
- * call). Once started, fetches ESPN and updates fight statuses until the final
- * fight is Finished; then triggers sync of the next 3 events.
- * Set CRON_SECRET in Vercel Environment Variables.
+ * Vercel Cron: runs every minute (* * * * *). Fetches ESPN for today/tomorrow
+ * events, upserts fight statuses, and sends up-next notifications when a fight
+ * finishes. Set CRON_SECRET in Vercel Environment Variables.
  */
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -49,28 +46,10 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const now = Date.now();
-
     for (const event of events) {
       const eventDate = event.event_date
         ? String(event.event_date).slice(0, 10)
         : today;
-      const isToday = eventDate === today;
-
-      if (isToday && event.event_start_time) {
-        const startTime = new Date(event.event_start_time).getTime();
-        if (now < startTime) {
-          return Response.json({
-            ok: true,
-            updated: false,
-            reason: "event_not_started_yet",
-            eventId: event.espn_event_id,
-            eventName: event.name,
-            eventStartTime: event.event_start_time,
-          });
-        }
-      }
-
       const eventDateYyyyymmdd = eventDate.replace(/-/g, "");
 
       const { data: fightsBefore, error: fightsError } = await supabase
@@ -90,25 +69,11 @@ export async function GET(request: NextRequest) {
       );
       if (!data?.mainCard?.length) continue;
 
-      const allNotStarted = data.mainCard.every((f) => f.status === "Not started");
-      if (allNotStarted && data.eventStartTime) {
-        const startTime = new Date(data.eventStartTime).getTime();
-        if (now < startTime) {
-          if (!event.event_start_time) {
-            await supabase
-              .from("events")
-              .update({ event_start_time: data.eventStartTime })
-              .eq("id", event.id);
-          }
-          return Response.json({
-            ok: true,
-            updated: false,
-            reason: "event_not_started_yet",
-            eventId: event.espn_event_id,
-            eventName: event.name,
-            eventStartTime: data.eventStartTime,
-          });
-        }
+      if (data.eventStartTime && !event.event_start_time) {
+        await supabase
+          .from("events")
+          .update({ event_start_time: data.eventStartTime })
+          .eq("id", event.id);
       }
 
       const validStatuses = ["Finished", "In progress", "Not started"] as const;
