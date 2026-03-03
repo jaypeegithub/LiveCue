@@ -220,7 +220,11 @@ export async function GET(request: NextRequest) {
               process.env.VERCEL_URL
                 ? `https://${process.env.VERCEL_URL}`
                 : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-            const voiceUrl = `${baseUrl}/api/twilio/voice?fighter1=${encodeURIComponent(nextFight.fighter1_name)}&fighter2=${encodeURIComponent(nextFight.fighter2_name)}`;
+            let voiceUrl = `${baseUrl}/api/twilio/voice?fighter1=${encodeURIComponent(nextFight.fighter1_name)}&fighter2=${encodeURIComponent(nextFight.fighter2_name)}`;
+            const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
+            if (bypassSecret) {
+              voiceUrl += `&x-vercel-set-bypass-cookie=true&x-vercel-protection-bypass=${encodeURIComponent(bypassSecret)}`;
+            }
 
             const accountSid = process.env.TWILIO_ACCOUNT_SID;
             const authToken = process.env.TWILIO_AUTH_TOKEN;

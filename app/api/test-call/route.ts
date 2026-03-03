@@ -44,8 +44,12 @@ export async function GET() {
       { status: 400 }
     );
   }
-  const voiceUrl = `${baseUrl}/api/test-call/voice`;
-  console.log("[api/test-call] voiceUrl (TwiML):", voiceUrl);
+  let voiceUrl = `${baseUrl}/api/test-call/voice`;
+  const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
+  if (bypassSecret) {
+    voiceUrl += `?x-vercel-set-bypass-cookie=true&x-vercel-protection-bypass=${encodeURIComponent(bypassSecret)}`;
+  }
+  console.log("[api/test-call] voiceUrl (TwiML):", bypassSecret ? "(with bypass)" : voiceUrl);
 
   try {
     const client = Twilio(accountSid, authToken);
