@@ -199,24 +199,42 @@ export async function GET(request: NextRequest) {
                 : null;
 
             for (const w of watches) {
+              // Insert notification_logs first (your fight is up next)
+              const { error: insertErr } = await supabase
+                .from("notification_logs")
+                .insert({
+                  user_id: w.user_id,
+                  fight_id: nextFight.id,
+                  message,
+                });
+              if (insertErr) {
+                console.error("[cron/fight-status] notification_logs insert", {
+                  user_id: w.user_id,
+                  fight_id: nextFight.id,
+                  error: insertErr.message,
+                });
+              } else {
+                console.log("[cron/fight-status] notification_logs inserted", {
+                  user_id: w.user_id,
+                });
+              }
+
+              // For call preference: fetch phone from profiles, initiate Twilio call, then log CALL TRIGGERED
               const pref = w.notification_preference ?? "sms";
-              if (
-                pref === "call" &&
-                twilioClient &&
-                fromNumber
-              ) {
+              if (pref === "call" && twilioClient && fromNumber) {
                 try {
-                  const { data: authData, error: authErr } =
-                    await supabase.auth.admin.getUserById(w.user_id);
-                  if (authErr) {
-                    console.error(
-                      "[cron/fight-status] auth.admin.getUserById",
-                      { user_id: w.user_id, error: authErr.message }
-                    );
+                  const { data: profile, error: profileErr } = await supabase
+                    .from("profiles")
+                    .select("phone_number")
+                    .eq("id", w.user_id)
+                    .maybeSingle();
+                  if (profileErr) {
+                    console.error("[cron/fight-status] profiles fetch for phone", {
+                      user_id: w.user_id,
+                      error: profileErr.message,
+                    });
                   }
-                  const phone = (
-                    (authData?.user?.user_metadata?.phone_number as string) ?? ""
-                  ).trim();
+                  const phone = (profile?.phone_number as string | undefined)?.trim();
                   if (phone) {
                     await twilioClient.calls.create({
                       to: phone,
@@ -227,6 +245,20 @@ export async function GET(request: NextRequest) {
                       user_id: w.user_id,
                       to: phone.slice(-4).padStart(phone.length, "*"),
                     });
+                    const callTriggeredMessage = `CALL TRIGGERED: ${nextFight.fighter1_name} vs ${nextFight.fighter2_name}`;
+                    const { error: logErr } = await supabase
+                      .from("notification_logs")
+                      .insert({
+                        user_id: w.user_id,
+                        fight_id: nextFight.id,
+                        message: callTriggeredMessage,
+                      });
+                    if (logErr) {
+                      console.error("[cron/fight-status] notification_logs CALL TRIGGERED insert", {
+                        user_id: w.user_id,
+                        error: logErr.message,
+                      });
+                    }
                   } else {
                     console.warn(
                       "[cron/fight-status] no phone for user (call skipped)",
@@ -245,25 +277,6 @@ export async function GET(request: NextRequest) {
                   "[cron/fight-status] Twilio not configured (call skipped)",
                   { user_id: w.user_id }
                 );
-              }
-
-              const { error: insertErr } = await supabase
-                .from("notification_logs")
-                .insert({
-                  user_id: w.user_id,
-                  fight_id: nextFight.id,
-                  message,
-                });
-              if (insertErr) {
-                console.error("[cron/fight-status] notification_logs insert", {
-                  user_id: w.user_id,
-                  fight_id: nextFight.id,
-                  error: insertErr.message,
-                });
-              } else {
-                console.log("[cron/fight-status] notification_logs inserted", {
-                  user_id: w.user_id,
-                });
               }
             }
           }
