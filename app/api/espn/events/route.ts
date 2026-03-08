@@ -53,6 +53,7 @@ export async function GET() {
           }));
 
           if (fromDb.length >= NEXT_EVENTS_COUNT) {
+            console.log("[espn/events] events (for dropdown):", JSON.stringify(fromDb, null, 2));
             return Response.json({ events: fromDb, finishedEvents }, { headers: noCacheHeaders });
           }
 

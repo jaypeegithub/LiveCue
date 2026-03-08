@@ -50,7 +50,7 @@ export async function POST() {
       }
 
       if (data?.mainCard?.length) {
-        const validStatuses = ["Finished", "In progress", "Not started"] as const;
+        const validStatuses = ["Finished", "In progress", "Not started", "Cancelled"] as const;
         const fightRows = data.mainCard
           .map((f, i) => {
             const espnId = f.espn_competition_id != null ? String(f.espn_competition_id).trim() : "";

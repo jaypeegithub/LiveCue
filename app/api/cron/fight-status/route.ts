@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
           .eq("id", event.id);
       }
 
-      const validStatuses = ["Finished", "In progress", "Not started"] as const;
+      const validStatuses = ["Finished", "In progress", "Not started", "Cancelled"] as const;
       const fightRows = data.mainCard
         .map((f, i) => {
           const espnId = f.espn_competition_id != null ? String(f.espn_competition_id).trim() : "";

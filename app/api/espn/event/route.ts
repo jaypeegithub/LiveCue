@@ -3,6 +3,51 @@ import { supabase } from "@/lib/supabase-server";
 
 const DEFAULT_EVENT_ID = "600057329";
 
+type FightRow = { id: string; fighter1_name: string; fighter2_name: string; status: string; order_index?: number };
+
+/** Normalize for matchup key (order-independent). */
+function matchupKey(f1: string, f2: string): string {
+  const a = (f1 ?? "").trim().toLowerCase();
+  const b = (f2 ?? "").trim().toLowerCase();
+  return a < b ? `${a}|${b}` : `${b}|${a}`;
+}
+
+/**
+ * One-off exclusions when ESPN mixes cards or has no "cancelled" signal.
+ * Cancelled bouts are normally filtered via status === "Cancelled" (from ESPN).
+ * Add matchups here only when they’re wrong-card or not marked cancelled by ESPN.
+ */
+const EXCLUDED_MATCHUPS: Array<[string, string]> = [
+  ["Duško Todorović", "Donte Johnson"],
+  ["Gaston Bolaños", "JooSang Yoo"],
+  ["Gaston Bolaños", "JeongYeong Lee"],
+];
+function isExcludedMatchup(f1: string, f2: string): boolean {
+  const k = matchupKey(f1, f2);
+  return EXCLUDED_MATCHUPS.some(
+    ([a, b]) => matchupKey(a, b) === k
+  );
+}
+
+/** Dedupe by matchup: keep one per matchup (prefer Finished), preserve card order by order_index. */
+function dedupeAndFilterFights(fights: FightRow[]): FightRow[] {
+  const statusRank = (s: string) =>
+    s === "Finished" ? 3 : s === "In progress" ? 2 : 1;
+  const byKey = new Map<string, FightRow>();
+  for (const f of fights) {
+    if (f.status === "Cancelled") continue;
+    if (isExcludedMatchup(f.fighter1_name, f.fighter2_name)) continue;
+    const key = matchupKey(f.fighter1_name, f.fighter2_name);
+    const existing = byKey.get(key);
+    if (!existing || statusRank(f.status) > statusRank(existing.status)) {
+      byKey.set(key, f);
+    }
+  }
+  const list = Array.from(byKey.values());
+  list.sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+  return list;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const eventId = searchParams.get("eventId") ?? DEFAULT_EVENT_ID;
@@ -25,15 +70,16 @@ export async function GET(request: Request) {
 
           const { data: fights, error: fightsError } = await supabase
             .from("fights")
-            .select("id, fighter1_name, fighter2_name, status")
+            .select("id, fighter1_name, fighter2_name, status, order_index")
             .eq("event_id", eventRow.id)
             .order("order_index", { ascending: true });
 
           if (!fightsError && fights?.length) {
+            const filtered = dedupeAndFilterFights(fights as FightRow[]);
             return Response.json({
               eventName: eventRow.name,
               eventId: eventRow.espn_event_id,
-              mainCard: fights.map((f: { id: string; fighter1_name: string; fighter2_name: string; status: string }) => ({
+              mainCard: filtered.map((f) => ({
                 id: f.id,
                 weightClass: "",
                 fighter1: f.fighter1_name,
@@ -57,16 +103,24 @@ export async function GET(request: Request) {
         const todayStr = getTodayEST().replace(/-/g, "");
         const dataToday = await fetchEventMainCard(eventId, todayStr);
         if (dataToday) {
+          const withIndex = dataToday.mainCard.map((f, i) => ({
+            id: "",
+            fighter1_name: f.fighter1,
+            fighter2_name: f.fighter2,
+            status: f.status,
+            order_index: i,
+          }));
+          const filtered = dedupeAndFilterFights(withIndex);
           return Response.json({
             eventName: dataToday.eventName,
             eventId: dataToday.espn_event_id,
-            mainCard: dataToday.mainCard.map((f) => ({
+            mainCard: filtered.map((f) => ({
               id: null,
-              weightClass: f.weightClass,
-              fighter1: f.fighter1,
-              fighter2: f.fighter2,
-              record1: f.record1,
-              record2: f.record2,
+              weightClass: "",
+              fighter1: f.fighter1_name,
+              fighter2: f.fighter2_name,
+              record1: "",
+              record2: "",
               status: f.status,
             })),
           });
@@ -78,19 +132,27 @@ export async function GET(request: Request) {
       );
     }
 
-    return Response.json({
-    eventName: data.eventName,
-    eventId: data.espn_event_id,
-    mainCard: data.mainCard.map((f) => ({
-      id: null,
-      weightClass: f.weightClass,
-      fighter1: f.fighter1,
-      fighter2: f.fighter2,
-      record1: f.record1,
-      record2: f.record2,
+    const withIndex = data.mainCard.map((f, i) => ({
+      id: "",
+      fighter1_name: f.fighter1,
+      fighter2_name: f.fighter2,
       status: f.status,
-    })),
-  });
+      order_index: i,
+    }));
+    const filtered = dedupeAndFilterFights(withIndex);
+    return Response.json({
+      eventName: data.eventName,
+      eventId: data.espn_event_id,
+      mainCard: filtered.map((f) => ({
+        id: null,
+        weightClass: "",
+        fighter1: f.fighter1_name,
+        fighter2: f.fighter2_name,
+        record1: "",
+        record2: "",
+        status: f.status,
+      })),
+    });
   } catch (e) {
     console.error(e);
     return Response.json(

@@ -89,9 +89,10 @@ function getFighterRecord(comp: Competition, order: 1 | 2): string {
 
 export function getFightStatus(
   comp: Competition
-): "Finished" | "In progress" | "Not started" {
-  const state = comp.status?.type?.state;
+): "Finished" | "In progress" | "Not started" | "Cancelled" {
+  const state = (comp.status?.type?.state ?? "").toLowerCase();
   const completed = comp.status?.type?.completed;
+  if (state === "canceled" || state === "cancelled") return "Cancelled";
   if (completed === true || state === "post") return "Finished";
   if (state === "in") return "In progress";
   return "Not started";
@@ -104,7 +105,7 @@ export type MainCardFight = {
   fighter2: string;
   record1: string;
   record2: string;
-  status: "Finished" | "In progress" | "Not started";
+  status: "Finished" | "In progress" | "Not started" | "Cancelled";
 };
 
 export type EventMainCard = {
@@ -131,12 +132,17 @@ export async function fetchEventMainCard(
     if (!event) return null;
 
   const competitions = event.competitions ?? [];
-  const sorted = [...competitions].sort((a, b) => {
-    const aStart = a.startDate || a.date || "";
-    const bStart = b.startDate || b.date || "";
-    return aStart.localeCompare(bStart);
+  // Sort by start date (earliest first), then reverse so main event is index 0.
+  // Use original index as tiebreaker so equal/missing dates keep ESPN's order.
+  const withIndex = competitions.map((c, i) => ({ c, i }));
+  const sorted = withIndex.sort((a, b) => {
+    const aStart = a.c.startDate || a.c.date || "";
+    const bStart = b.c.startDate || b.c.date || "";
+    const byDate = aStart.localeCompare(bStart);
+    if (byDate !== 0) return byDate;
+    return a.i - b.i;
   });
-  const mainCard = sorted.slice().reverse();
+  const mainCard = sorted.map((x) => x.c).reverse();
 
   const mainCardFights: MainCardFight[] = mainCard.map((comp) => ({
     espn_competition_id: comp.id,
